@@ -164,7 +164,7 @@ int main(int argc, char *argv[]) {
         FILE *btree = fopen("btree.dat", "rb+");
         if (btree == NULL) ERRO("Impossivel abrir 'btree.dat'\n");
         arvore_print(btree);
-        printf("Impressão realizada com sucesso!");
+        printf("Impressão realizada com sucesso!\n");
 
     } else {
         ERRO("comando nao conhecido '%s'\n", argv[1]);
@@ -378,7 +378,7 @@ void arvore_print(FILE *btree) {
         }
         printf("\n");
         
-        printf("Filhas: ");
+        printf("Filhos: ");
         for (int k = 0; k <= j; k++) {
             printf("%i", pag->filhas[k]);
             
