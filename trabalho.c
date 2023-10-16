@@ -133,6 +133,7 @@ int op_buscar(FILE *btree, int id);
 int op_inserir(FILE *btree, int id, int offset);
 
 INSERIR_FLAG arvore_inserir(FILE *btree, int id, int offset, Pagina *pag, int *filho_dir, No *proximo);
+int arvore_buscar(FILE *btree, int id, Pagina *pag);
 void arvore_construir(FILE *dados, FILE *btree);
 void arvore_print(FILE *btree);
 void arvore_escrever_pagina(FILE *btree, Pagina *pag);
@@ -171,6 +172,7 @@ int main(int argc, char *argv[]) {
 void executa_op(FILE *dados, FILE* btree, char *path) {
     FILE *fd = fopen(path, "r");
     if (fd == NULL) ERRO("Impossivel abrir '%s'", path);
+    char buffer[200] = "\0";
 
     while(fpeek(fd) != EOF) {
         operacao op = ler_op(fd);
@@ -179,7 +181,15 @@ void executa_op(FILE *dados, FILE* btree, char *path) {
             case 'b':
                 printf("Busca pelo registro de chave \"%s\"\n", op.arg);
 
-                int busca = op_buscar(btree, atoi(op.arg));
+                int pos = op_buscar(btree, atoi(op.arg));
+
+                if (pos < 0) {
+                    printf("Erro: registro nao encontrado!\n\n");
+                } else {
+                    fseek(dados, pos, SEEK_SET);
+                    ler_registro(dados, buffer);
+                    printf("%s (%i bytes - offset %i)\n\n", buffer, (int)strlen(buffer), pos);
+                }
                 break;
             case 'i':
                 char id[200];
@@ -289,6 +299,7 @@ INSERIR_FLAG arvore_inserir(FILE *btree, int id, int offset, Pagina *pag, int *f
     int fd = -1;
     No no = {0};
     int flag = arvore_inserir(btree, id, offset, prox_pag, &fd, &no);
+    free(prox_pag);
 
     if (flag == PROMOCAO) {
         if (pagina_livre(pag)) {
@@ -309,19 +320,58 @@ INSERIR_FLAG arvore_inserir(FILE *btree, int id, int offset, Pagina *pag, int *f
 
             escreve_tamanho(btree, tamanho_arvore(btree) + 1);
 
-            free(prox_pag);
             return PROMOCAO;
         }
     } 
 
-    free(prox_pag);
     // flag = SEM_PROMOCAO | JA_EXISTE    
     return flag;
 }
 
 void arvore_print(FILE *btree) {
-    //! ler sequencialmente as paginas em btree
-    //! informar os dados como na especificação
+    short tamanho = tamanho_arvore(btree);
+    short raiz = raiz_arvore(btree);
+
+    for (int i = 0; i <= tamanho; i++) {
+        Pagina *pag = arvore_ler_pagina(btree, i);
+
+        if (pag->id == raiz) printf("- - - - - - Raiz - - - - - -\n");
+        printf("Pagina %i\n", pag->id);
+        
+        printf("Chaves: ");
+        int j = 0;
+        while(j < ORDEM - 1 && pag->nos[j].chave > -1) {
+            printf("%i", pag->nos[j].chave);
+            
+            j++;
+            if (j < ORDEM -1 && pag->nos[j].chave > -1) printf(" | ");
+        }
+        printf("\n");
+        
+        printf("Offsets: ");
+        j = 0;
+        while(j < ORDEM - 1 && pag->nos[j].offset > -1) {
+            printf("%i", pag->nos[j].offset);
+            
+            j++;
+            if (j < ORDEM -1 && pag->nos[j].offset > -1) printf(" | ");
+        }
+        printf("\n");
+        
+        printf("Filhas: ");
+        j = 0;
+        while(j < ORDEM && pag->filhas[j] > -1) {
+            printf("%i", pag->filhas[j]);
+            
+            j++;
+            if (j < ORDEM && pag->filhas[j] > -1) printf(" | ");
+        }
+        printf("\n");
+        if (pag->id == raiz) printf("- - - - - - - - - - - - - - -\n");
+        printf("\n");
+
+        free(pag);
+    }
 }
 
 void arvore_escrever_pagina(FILE *btree, Pagina *pag) {
