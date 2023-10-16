@@ -21,7 +21,7 @@ operacao ler_op(FILE *fd) {
 int ler_registro(FILE *fd, char *str) {
     checar_cabecalho(fd);
 
-    short tamanho_registro = get_tam_registro(fd, -1);
+    short tamanho_registro = get_tam_registro(fd);
     int i = 0;
     char c;
 
@@ -38,7 +38,6 @@ int ler_registro(FILE *fd, char *str) {
 // le caracter a caracter de um campo ate encontrar um |
 // retorna o tamanho do campo lido
 int ler_campo(FILE *fd, char *str) {
-    checar_cabecalho(fd);
     int i = 0;
     char c;
 
@@ -46,16 +45,11 @@ int ler_campo(FILE *fd, char *str) {
         str[i++] = c;
     }
 
-    if (c == '*') str[0] = '\0';
     str[i] = '\0';
     return i + 1;
 }
 
-short get_tam_registro(FILE *fd, int offset) {
-    if (offset >= 0) {
-        fseek(fd, offset, SEEK_SET);
-    }
-
+short get_tam_registro(FILE *fd) {
     short tamanho_registro;
     fread(&tamanho_registro, sizeof(short), 1, fd);
 

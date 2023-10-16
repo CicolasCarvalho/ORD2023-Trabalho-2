@@ -46,7 +46,7 @@ operacao ler_op(FILE *fd);
 
 int ler_registro(FILE *fd, char *str);
 int ler_campo(FILE *fd, char *str);
-short get_tam_registro(FILE *fd, int offset);
+short get_tam_registro(FILE *fd);
 void checar_cabecalho(FILE *fd);
 char fpeek(FILE *fd);
 

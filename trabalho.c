@@ -8,7 +8,7 @@
 #include "arquivo.h"
 #include <math.h>
 
-#define ORDEM 4
+#define ORDEM 5
 #define NO_NULO (No){.chave = -1, .offset = -1}
 
 // --------------------------------------------------------------------------------------------------------------------------
@@ -134,7 +134,7 @@ int op_inserir(FILE *btree, int id, int offset);
 
 INSERIR_FLAG arvore_inserir(FILE *btree, int id, int offset, Pagina *pag, int *filho_dir, No *proximo);
 int arvore_buscar(FILE *btree, int id, Pagina *pag);
-void arvore_construir(FILE *dados, FILE *btree);
+void arvore_construir(FILE *dados);
 void arvore_print(FILE *btree);
 void arvore_escrever_pagina(FILE *btree, Pagina *pag);
 Pagina *arvore_ler_pagina(FILE *btree, int offset);
@@ -146,21 +146,26 @@ short raiz_arvore(FILE *btree);
 void escreve_raiz(FILE *btree, short tam);
 
 int main(int argc, char *argv[]) {
-    FILE *dados = fopen("dados.dat", "rb+");
+    FILE *dados = fopen("dados100.dat", "rb+");
     if (dados == NULL) ERRO("Impossivel abrir 'dados.dat'\n");
     if (argc < 2) ERRO("E preciso inlcuir '-c'; '-e <arquivo>'; '-p'\n");
 
     if (!strcmp(argv[1], "-c")) { 
-        arvore_construir(dados, NULL);
+        arvore_construir(dados);
+        printf("Arvore construida com sucesso!\n");
+
     } else if (!strcmp(argv[1], "-e")) {
         if (argc < 3) ERRO("E preciso incluir o arquivo de execucao\n");
         FILE *btree = fopen("btree.dat", "rb+");
         if (btree == NULL) ERRO("Impossivel abrir 'btree.dat'\n");
         executa_op(dados, btree, argv[2]);
+    
     } else if (!strcmp(argv[1], "-p")) {
         FILE *btree = fopen("btree.dat", "rb+");
         if (btree == NULL) ERRO("Impossivel abrir 'btree.dat'\n");
         arvore_print(btree);
+        printf("Impressão realizada com sucesso!");
+
     } else {
         ERRO("comando nao conhecido '%s'\n", argv[1]);
     }
@@ -214,8 +219,8 @@ void executa_op(FILE *dados, FILE* btree, char *path) {
     fclose(fd);
 }
 
-void arvore_construir(FILE *dados, FILE *btree) {
-    FILE *bt = fopen("btree.dat", "w");
+void arvore_construir(FILE *dados) {
+    FILE *bt = fopen("btree.dat", "wr+");
     if (bt == NULL) ERRO("Impossivel abrir 'btree.dat'\n");
     
     short tam = -1;
@@ -224,8 +229,23 @@ void arvore_construir(FILE *dados, FILE *btree) {
     escreve_raiz(bt, raiz);
     escreve_tamanho(bt, tam);
 
-    //! percorrer registro por registro pegando sempre o id
-    //! e usar op_inserir com o id do registro e o offset
+    char id[10] = "\0";
+    int desloc = 0;
+    int offset = 4;
+    short tam_campo = 0;
+
+    fseek(dados, offset, SEEK_SET);
+
+    while (fpeek(dados) != EOF) {
+        tam_campo = get_tam_registro(dados);
+        desloc = ler_campo(dados, id);
+
+        printf("%s\n", id);
+        op_inserir(bt, atoi(id), offset);
+
+        offset += 2 + tam_campo;
+        fseek(dados, (int)tam_campo - desloc, SEEK_CUR);
+    }
 }
 
 int op_buscar(FILE *btree, int id) {
@@ -359,12 +379,10 @@ void arvore_print(FILE *btree) {
         printf("\n");
         
         printf("Filhas: ");
-        j = 0;
-        while(j < ORDEM && pag->filhas[j] > -1) {
-            printf("%i", pag->filhas[j]);
+        for (int k = 0; k <= j; k++) {
+            printf("%i", pag->filhas[k]);
             
-            j++;
-            if (j < ORDEM && pag->filhas[j] > -1) printf(" | ");
+            if (k + 1 <= j) printf(" | ");
         }
         printf("\n");
         if (pag->id == raiz) printf("- - - - - - - - - - - - - - -\n");
