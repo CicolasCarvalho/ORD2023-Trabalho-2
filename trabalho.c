@@ -113,16 +113,17 @@ void pagina_divide(
 }
 
 int pagina_inserir(Pagina *pag, int chave, int offset, int filho_dir) {
-    int i = 0;
-    while (i < ORDEM - 1 && pag->nos[i].chave > 0 && pag->nos[i].chave < chave) i++;
+    ResultadoBusca resultado = pagina_busca(pag, chave);
     
-    if (i >= ORDEM - 1) return i;
-    
+    if (resultado.tipo == NA_PAGINA) return -1;
+    if (resultado.posicao >= ORDEM - 1) return 0;
+
+    int i = resultado.posicao;
     No n = (No){.chave = chave, .offset = offset};
     insere_posicao(pag->nos, ORDEM - 1, i, n);
-    insere_posicao(pag->filhas, ORDEM - 1, i + 1, filho_dir);
+    insere_posicao(pag->filhas, ORDEM, i + 1, filho_dir);
 
-    return -1; 
+    return 0; 
 }
 
 // --------------------------------------------------------------------------------------------------------------------------
@@ -218,9 +219,29 @@ void arvore_construir(FILE *dados, FILE *btree) {
 }
 
 int op_buscar(FILE *btree, int id) {
-    //! busca pelo registro na arvore
-    //! encontra e retorna o offset do registro
-    //! a leitura do registro deve ser feito no switch
+    short raiz = raiz_arvore(btree);
+    Pagina *pagina_raiz = arvore_ler_pagina(btree, raiz);
+
+    int resultado = arvore_buscar(btree, id, pagina_raiz);
+
+    free(pagina_raiz);
+    return resultado;
+}
+
+int arvore_buscar(FILE *btree, int id, Pagina *pag) {
+    if (pag == NULL)
+        return -1;
+    
+    ResultadoBusca resultado = pagina_busca(pag, id);
+
+    if (resultado.tipo == NA_PAGINA)
+        return pag->nos[resultado.posicao].offset;
+    
+    Pagina *prox_pag = arvore_ler_pagina(btree, pag->filhas[resultado.posicao]);
+    int offset = arvore_buscar(btree, id, prox_pag);
+
+    free(prox_pag);
+    return offset;
 }
 
 int op_inserir(FILE *btree, int id, int offset) {
@@ -231,7 +252,10 @@ int op_inserir(FILE *btree, int id, int offset) {
     No no;
     INSERIR_FLAG resultado = arvore_inserir(btree, id, offset, pagina_raiz, &fd, &no);
 
-    if (resultado == JA_EXISTE) return -1;
+    if (resultado == JA_EXISTE) {
+        free(pagina_raiz);
+        return -1;
+    }
 
     if (resultado == PROMOCAO) {
         short novo_id = tamanho_arvore(btree) + 1;
@@ -244,6 +268,7 @@ int op_inserir(FILE *btree, int id, int offset) {
         arvore_escrever_pagina(btree, &pag);
     }
     
+    free(pagina_raiz);
     return 0;
 }
 
@@ -284,10 +309,12 @@ INSERIR_FLAG arvore_inserir(FILE *btree, int id, int offset, Pagina *pag, int *f
 
             escreve_tamanho(btree, tamanho_arvore(btree) + 1);
 
+            free(prox_pag);
             return PROMOCAO;
         }
     } 
 
+    free(prox_pag);
     // flag = SEM_PROMOCAO | JA_EXISTE    
     return flag;
 }
