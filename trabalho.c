@@ -226,7 +226,7 @@ void arvore_construir(FILE *dados) {
     FILE *btree = fopen("btree.dat", "wr+");
     if (btree == NULL) ERRO("Impossivel abrir 'btree.dat'\n");
     
-    short tam = -1;
+    short tam = 0;
     short raiz = -1;
 
     escreve_raiz(btree, raiz);
@@ -293,13 +293,13 @@ int op_inserir(FILE *btree, int id, int offset) {
     }
 
     if (resultado == PROMOCAO) {
-        short novo_id = tamanho_arvore(btree) + 1;
+        short novo_id = tamanho_arvore(btree);
         Pagina pag = pagina_criar(novo_id);
         pagina_inserir(&pag, no.chave, no.offset, fd);
         pag.filhas[0] = raiz;
         
         escreve_raiz(btree, novo_id);
-        escreve_tamanho(btree, novo_id);
+        escreve_tamanho(btree, novo_id + 1);
         arvore_escrever_pagina(btree, &pag);
     }
     
@@ -323,7 +323,7 @@ INSERIR_FLAG arvore_inserir(FILE *btree, int id, int offset, Pagina *pag, int *f
     Pagina *prox_pag = arvore_ler_pagina(btree, pag->filhas[resultado.posicao]);
     int fd = -1;
     No no = {0};
-    int flag = arvore_inserir(btree, id, offset, prox_pag, &fd, &no);
+    INSERIR_FLAG flag = arvore_inserir(btree, id, offset, prox_pag, &fd, &no);
     free(prox_pag);
 
     if (flag == PROMOCAO) {
@@ -339,7 +339,7 @@ INSERIR_FLAG arvore_inserir(FILE *btree, int id, int offset, Pagina *pag, int *f
                 pag, 
                 no.chave, no.offset, fd, 
                 &nova_pagina, filho_dir, proximo, 
-                tamanho_arvore(btree) + 1
+                tamanho_arvore(btree)
             );
             arvore_escrever_pagina(btree, pag);
             arvore_escrever_pagina(btree, &nova_pagina);
@@ -358,7 +358,7 @@ void arvore_print(FILE *btree) {
     short tamanho = tamanho_arvore(btree);
     short raiz = raiz_arvore(btree);
 
-    for (int i = 0; i <= tamanho; i++) {
+    for (int i = 0; i < tamanho; i++) {
         Pagina *pag = arvore_ler_pagina(btree, i);
 
         if (pag->id == raiz) printf("- - - - - - Raiz - - - - - -\n");
