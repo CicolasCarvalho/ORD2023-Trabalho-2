@@ -62,7 +62,7 @@ bool pagina_livre(Pagina *pag) {
 ResultadoBusca pagina_busca(Pagina *pag, int chave) {
     int i = 0;
     while (i < ORDEM - 1 && pag->nos[i].chave > 0 && pag->nos[i].chave < chave) i++;
-    
+
     if (
         i >= ORDEM - 1 ||
         pag->nos[i].chave != chave
@@ -146,8 +146,8 @@ short raiz_arvore(FILE *btree);
 void escreve_raiz(FILE *btree, short tam);
 
 int main(int argc, char *argv[]) {
-    FILE *dados = fopen("dados100.dat", "rb+");
-    if (dados == NULL) ERRO("Impossivel abrir 'dados.dat'\n");
+    FILE *dados = fopen("dados50.dat", "rb+");
+    if (dados == NULL) ERRO("Impossivel abrir 'dados100.dat'\n");
     if (argc < 2) ERRO("E preciso inlcuir '-c'; '-e <arquivo>'; '-p'\n");
 
     if (!strcmp(argv[1], "-c")) { 
@@ -158,18 +158,22 @@ int main(int argc, char *argv[]) {
         if (argc < 3) ERRO("E preciso incluir o arquivo de execucao\n");
         FILE *btree = fopen("btree.dat", "rb+");
         if (btree == NULL) ERRO("Impossivel abrir 'btree.dat'\n");
+        // executa_op(dados, btree, "op-teste.txt");
         executa_op(dados, btree, argv[2]);
+        fclose(btree);
     
     } else if (!strcmp(argv[1], "-p")) {
         FILE *btree = fopen("btree.dat", "rb+");
         if (btree == NULL) ERRO("Impossivel abrir 'btree.dat'\n");
         arvore_print(btree);
         printf("Impressão realizada com sucesso!\n");
+        fclose(btree);
 
     } else {
         ERRO("comando nao conhecido '%s'\n", argv[1]);
     }
 
+    fclose(dados);
     return 0;
 }
 
@@ -181,12 +185,15 @@ void executa_op(FILE *dados, FILE* btree, char *path) {
 
     while(fpeek(fd) != EOF) {
         operacao op = ler_op(fd);
+        char id[200];
+        strcpy(id, op.arg);
+        strtok(id, "|");
 
         switch(op.tipo) {
             case 'b':
-                printf("Busca pelo registro de chave \"%s\"\n", op.arg);
+                printf("Busca pelo registro de chave \"%s\"\n", id);
 
-                int pos = op_buscar(btree, atoi(op.arg));
+                int pos = op_buscar(btree, atoi(id));
 
                 if (pos < 0) {
                     printf("Erro: registro nao encontrado!\n\n");
@@ -197,16 +204,12 @@ void executa_op(FILE *dados, FILE* btree, char *path) {
                 }
                 break;
             case 'i':
-                char id[200];
-                strcpy(id, op.arg);
-                strtok(id, "|");
                 printf("Insercao do registro de chave \"%s\"\n", id);
-
                 int offset = insere_reg(dados, op.arg);
                 int inserir = op_inserir(btree, atoi(id), offset);
 
                 if (inserir < 0)
-                    printf("Erro: chave \"%s\" ja existente!\n\n", id);
+                    printf("Erro: chave \"%s\" ja existente\n\n", id);
                 else
                     printf("%s (%li bytes - offset %i)\n\n", op.arg, strlen(op.arg), offset);
                 break;
@@ -220,14 +223,14 @@ void executa_op(FILE *dados, FILE* btree, char *path) {
 }
 
 void arvore_construir(FILE *dados) {
-    FILE *bt = fopen("btree.dat", "wr+");
-    if (bt == NULL) ERRO("Impossivel abrir 'btree.dat'\n");
+    FILE *btree = fopen("btree.dat", "wr+");
+    if (btree == NULL) ERRO("Impossivel abrir 'btree.dat'\n");
     
     short tam = -1;
     short raiz = -1;
 
-    escreve_raiz(bt, raiz);
-    escreve_tamanho(bt, tam);
+    escreve_raiz(btree, raiz);
+    escreve_tamanho(btree, tam);
 
     char id[10] = "\0";
     int desloc = 0;
@@ -241,11 +244,13 @@ void arvore_construir(FILE *dados) {
         desloc = ler_campo(dados, id);
 
         printf("%s\n", id);
-        op_inserir(bt, atoi(id), offset);
+        op_inserir(btree, atoi(id), offset);
 
         offset += 2 + tam_campo;
         fseek(dados, (int)tam_campo - desloc, SEEK_CUR);
     }
+
+    fclose(btree);
 }
 
 int op_buscar(FILE *btree, int id) {
@@ -326,6 +331,7 @@ INSERIR_FLAG arvore_inserir(FILE *btree, int id, int offset, Pagina *pag, int *f
             // printf("%i %i %i\n", no.chave, no.offset, fd);
             pagina_inserir(pag, no.chave, no.offset, fd);
             arvore_escrever_pagina(btree, pag);
+
             return SEM_PROMOCAO;
         } else {
             Pagina nova_pagina = {0};

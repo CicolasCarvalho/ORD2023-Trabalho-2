@@ -1,0 +1,64 @@
+Busca pelo registro de chave "74"
+74|Super Mario Kart|1992|Kart racing|Nintendo|Super NES| (56 bytes - offset 1036)
+
+Busca pelo registro de chave "14"
+14|Frogger|1981|Action|Konami/Sega|Arcade| (42 bytes - offset 410)
+
+Busca pelo registro de chave "4"
+4|Zork|1977|Adventure|Infocom|PDP-10| (37 bytes - offset 802)
+
+Busca pelo registro de chave "20"
+20|Pitfall!|1982|Platform|Activision|Atari 2600| (48 bytes - offset 1963)
+
+Insercao do registro de chave "173"
+173|Batman: Arkham City|2011|Action-adventure|Warneb Bros. Interactive Entertainment|"PlayStation 3, Xbox 360"| (111 bytes - offset 3019)
+
+Insercao do registro de chave "148"
+Erro: chave "148" ja existente
+
+Insercao do registro de chave "181"
+181|Pac-Man|1980|Maze|Namco|Arcade| (35 bytes - offset 3132)
+
+Busca pelo registro de chave "22"
+22|Archon: The Light and the Dark|1983|Strategy|Electronic Arts|Atari 8-bit family| (83 bytes - offset 2569)
+
+Busca pelo registro de chave "148"
+148|The Legend of Zelda: Ocarina of Time|1998|Action-adventure|Nintendo|Nintendo 64| (84 bytes - offset 1094)
+
+Busca pelo registro de chave "82"
+82|Mega Man X|1993|Platform|Capcom|Super NES| (45 bytes - offset 755)
+
+Busca pelo registro de chave "50"
+50|The Secret of Monkey Island|1990|Adventure|LucasArts|PC| (59 bytes - offset 1731)
+
+Busca pelo registro de chave "170"
+170|Jet Set Radio|2000|Platform|Sega|Dreamcast| (47 bytes - offset 4)
+
+Insercao do registro de chave "135"
+Erro: chave "135" ja existente
+
+Busca pelo registro de chave "181"
+181|Pac-Man|1980|Maze|Namco|Arcade| (35 bytes - offset 3132)
+
+Busca pelo registro de chave "135"
+135|Gran Turismo|1997|Racing|Sony Computer Entertainment|PlayStation| (69 bytes - offset 2833)
+
+Busca pelo registro de chave "198"
+198|The Legend of Zelda: The Wind Waker|2002|Action-adventure|Nintendo|GameCube| (80 bytes - offset 275)
+
+Busca pelo registro de chave "86"
+Erro: registro nao encontrado!
+
+Busca pelo registro de chave "37"
+37|Contra|1987|Run and gun|Konami|Arcade| (41 bytes - offset 1342)
+
+Insercao do registro de chave "202"
+202|Tom Clancy's Splinter Cell|2002|Stealth|Ubisoft|Xbox| (57 bytes - offset 3169)
+
+Busca pelo registro de chave "12"
+12|Defender|1981|Shoot 'em up|Williams Entertainment|Arcade| (60 bytes - offset 693)
+
+Busca pelo registro de chave "135"
+135|Gran Turismo|1997|Racing|Sony Computer Entertainment|PlayStation| (69 bytes - offset 2833)
+
+As operacoes do arquivo "opteste.txt" foram executadas com sucesso!
